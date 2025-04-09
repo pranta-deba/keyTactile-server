@@ -41,20 +41,22 @@ const run = async () => {
   }
 };
 
+const connectDB = async () => {
+  try {
+    await client.connect();
+    const db = client.db("key-tactile");
+    console.log("✅ Connected to MongoDB!");
+
+    const productCollection = db.collection("products");
+    
+  } catch (error) {
+    console.error("MongoDB Connection Failed:", error);
+  }
+};
+
 //*! ROOT Route
 app.get("/", (req, res) => {
   res.status(200).send("Running.........");
-});
-
-//*! GLOBAL Error Handler
-app.use((err, req, res, next) => {
-  console.error("❌ Error:", err.message);
-
-  const statusCode = err.statusCode || 500;
-  res.status(statusCode).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
 });
 
 //*! APP Listen
