@@ -33,24 +33,24 @@ const run = async () => {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
+
+    const db = client.db("key-tactile");
+    const productCollection = db.collection("products");
+
     //*! API ENDPOINT START
+    app.get("/products", async (req, res) => {
+      const result = await productCollection.find().toArray();
+      res.json(result);
+    });
+
+    app.post("/products", async (req, res) => {
+      const result = await productCollection.insertOne(req.body);
+      res.json(result);
+    });
 
     //*! API ENDPOINT END
   } finally {
-    await client.close();
-  }
-};
-
-const connectDB = async () => {
-  try {
-    await client.connect();
-    const db = client.db("key-tactile");
-    console.log("✅ Connected to MongoDB!");
-
-    const productCollection = db.collection("products");
-    
-  } catch (error) {
-    console.error("MongoDB Connection Failed:", error);
+    // await client.close();
   }
 };
 
@@ -61,8 +61,6 @@ app.get("/", (req, res) => {
 
 //*! APP Listen
 app.listen(PORT, () => {
+  run().catch((error) => console.log(error));
   console.log(`🚀 Server listening on port ${PORT}`);
 });
-
-//*! DB Run
-run().catch((error) => console.log(error));
