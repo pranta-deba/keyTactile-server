@@ -4,10 +4,11 @@ import express from "express";
 import cors from "cors";
 import { MongoClient, ServerApiVersion } from "mongodb";
 import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
-const PORT = process.env.PORT || 3000;
 const app = express();
-const uri = process.env.DB_URL;
+const PORT = process.env.PORT || 3000;
+const { DB_URL, JWT_SECRET, JWT_EXPIRES } = process.env;
 
 //*! MIDDLEWARES
 app.use(express.json());
@@ -19,7 +20,7 @@ app.use(
 );
 
 //*! Create a MongoClient
-const client = new MongoClient(uri, {
+const client = new MongoClient(DB_URL, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -42,11 +43,11 @@ const run = async () => {
     //*! API ENDPOINT START
     app.get("/register", async (req, res) => {
       const { email, password, image, name, userName } = req.body;
-
+      // 1. Check if user exists
       const user = await userCollection.findOne({ email });
 
       if (user) {
-        return res.json({
+        return res.status(401).json({
           success: false,
           message: "User Already Exists!",
         });
@@ -68,7 +69,53 @@ const run = async () => {
         data: result,
       });
     });
-    
+
+    app.post("/login", async (req, res) => {
+      const { email, password } = req.body;
+      // 1. Check if user exists
+      const user = await userCollection.findOne({ email });
+
+      if (!user) {
+        return res.status(401).json({
+          success: false,
+          message: "User not found!",
+        });
+      }
+
+      // 2. Compare password with hashed one
+      const isMatch = bcrypt.compareSync(password, user.password);
+
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid password!",
+        });
+      }
+
+      // 3. Create JWT token
+      const token = jwt.sign(
+        {
+          id: user._id,
+          email: user.email,
+          userName: user.userName,
+        },
+        JWT_SECRET,
+        { expiresIn: JWT_EXPIRES }
+      );
+
+      res.status(200).json({
+        success: true,
+        message: "Login successful!",
+        token,
+        user: {
+          id: user._id,
+          email: user.email,
+          name: user.name,
+          image: user.image,
+          userName: user.userName,
+        },
+      });
+    });
 
     app.get("/products", async (req, res) => {
       const result = await productCollection.find().toArray();
