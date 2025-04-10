@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import { MongoClient, ServerApiVersion } from "mongodb";
+import { MongoClient, ObjectId, ServerApiVersion } from "mongodb";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
@@ -273,8 +273,24 @@ const run = async () => {
     });
 
     //* Create Product
-    app.post("/products", async (req, res) => {
+    app.post("/products", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
       try {
+        if (role !== "admin") {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized Access!",
+            error: {},
+          });
+        }
+
         const result = await productCollection.insertOne(req.body);
         res.status(200).json({
           success: true,
@@ -286,6 +302,75 @@ const run = async () => {
           success: false,
           message: "Something went wrong!",
           error,
+        });
+      }
+    });
+
+    //* Update Product
+    app.put("/products/:id", auth, async (req, res) => {
+      const { id } = req.params;
+      const {
+        title,
+        brand,
+        availableQuantity,
+        price,
+        rating,
+        description,
+        images,
+      } = req.body;
+
+      try {
+        // Check if the product exists
+        const product = await productCollection.findOne({
+          _id: new ObjectId(id),
+        });
+        if (!product) {
+          return res.status(404).json({
+            success: false,
+            message: "Product not found!",
+          });
+        }
+
+        // Prepare the update data
+        const updatedData = {};
+        if (title) updatedData.title = title;
+        if (brand) updatedData.brand = brand;
+        if (availableQuantity)
+          updatedData.availableQuantity = availableQuantity;
+        if (price) updatedData.price = price;
+        if (rating) updatedData.rating = rating;
+        if (description) updatedData.description = description;
+        if (images) updatedData.images = images;
+
+        // Update the product
+        const result = await productCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updatedData }
+        );
+
+        // Check if the product was updated
+        if (result.modifiedCount === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "No fields were updated. Please provide valid data.",
+          });
+        }
+
+        // Fetch the updated product
+        const updatedProduct = await productCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        res.status(200).json({
+          success: true,
+          message: "Product updated successfully.",
+          data: updatedProduct,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while updating the product.",
+          error: error,
         });
       }
     });
