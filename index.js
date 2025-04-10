@@ -3,6 +3,7 @@ dotenv.config();
 import express from "express";
 import cors from "cors";
 import { MongoClient, ServerApiVersion } from "mongodb";
+import bcrypt from "bcryptjs";
 
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -36,16 +37,55 @@ const run = async () => {
 
     const db = client.db("key-tactile");
     const productCollection = db.collection("products");
+    const userCollection = db.collection("users");
 
     //*! API ENDPOINT START
+    app.get("/register", async (req, res) => {
+      const { email, password, image, name, userName } = req.body;
+
+      const user = await userCollection.findOne({ email });
+
+      if (user) {
+        return res.json({
+          success: false,
+          message: "User Already Exists!",
+        });
+      }
+
+      const hashPassword = bcrypt.hashSync(password, 10);
+
+      const result = await productCollection.insertOne({
+        email,
+        password: hashPassword,
+        image,
+        name,
+        userName,
+      });
+
+      res.status(200).json({
+        success: true,
+        message: "User Created Successfully.",
+        data: result,
+      });
+    });
+    
+
     app.get("/products", async (req, res) => {
       const result = await productCollection.find().toArray();
-      res.json(result);
+      res.status(200).json({
+        success: true,
+        message: "Product Fetched Successfully.",
+        data: result,
+      });
     });
 
     app.post("/products", async (req, res) => {
       const result = await productCollection.insertOne(req.body);
-      res.json(result);
+      res.status(200).json({
+        success: true,
+        message: "Product Created Successfully.",
+        data: result,
+      });
     });
 
     //*! API ENDPOINT END
