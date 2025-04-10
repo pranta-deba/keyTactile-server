@@ -169,12 +169,47 @@ const run = async () => {
 
     //* Get All Products
     app.get("/products", async (req, res) => {
-      const result = await productCollection.find().toArray();
-      res.status(200).json({
-        success: true,
-        message: "Product Fetched Successfully.",
-        data: result,
-      });
+      try {
+        const { page = 1, limit = 10, search } = req.query;
+        console.log(req.query);
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        let query = {};
+        // if search param exists, build a regex query
+        if (search) {
+          query = {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { brand: { $regex: search, $options: "i" } },
+              { description: { $regex: search, $options: "i" } },
+            ],
+          };
+        }
+        const total = await productCollection.countDocuments(query);
+        const products = await productCollection
+          .find(query)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+
+        res.status(200).json({
+          success: true,
+          message: "Products Fetched Successfully.",
+          data: products,
+          meta: {
+            totalItems: total,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            pageSize: parseInt(limit),
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
     });
 
     //* Create Product
