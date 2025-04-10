@@ -64,6 +64,7 @@ const run = async () => {
     const db = client.db("key-tactile");
     const productCollection = db.collection("products");
     const userCollection = db.collection("users");
+    const orderCollection = db.collection("orders");
 
     //*! API ENDPOINT START
     //* Register
@@ -167,11 +168,70 @@ const run = async () => {
       }
     });
 
+    //* Get All users
+    app.get("/users", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      try {
+        if (role !== "admin") {
+          return res.status(401).json({
+            success: false,
+            message: "Unauthorized Access!",
+            error: {},
+          });
+        }
+
+        const { page = 1, limit = 10, search } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        let query = {};
+        // if search param exists, build a regex query
+        if (search) {
+          query = {
+            $or: [
+              { name: { $regex: search, $options: "i" } },
+              { userName: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+            ],
+          };
+        }
+        const total = await userCollection.countDocuments(query);
+        const users = await userCollection
+          .find(query, { projection: { password: 0 } })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+
+        res.status(200).json({
+          success: true,
+          message: "Users Fetched Successfully.",
+          data: users,
+          meta: {
+            totalItems: total,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            pageSize: parseInt(limit),
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
+    });
+
     //* Get All Products
     app.get("/products", async (req, res) => {
       try {
         const { page = 1, limit = 10, search } = req.query;
-        console.log(req.query);
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         let query = {};
@@ -214,12 +274,20 @@ const run = async () => {
 
     //* Create Product
     app.post("/products", async (req, res) => {
-      const result = await productCollection.insertOne(req.body);
-      res.status(200).json({
-        success: true,
-        message: "Product Created Successfully.",
-        data: result,
-      });
+      try {
+        const result = await productCollection.insertOne(req.body);
+        res.status(200).json({
+          success: true,
+          message: "Product Created Successfully.",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
     });
 
     //*! API ENDPOINT END
