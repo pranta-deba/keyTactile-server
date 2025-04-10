@@ -29,7 +29,28 @@ app.use(
 );
 
 const auth = (req, res, next) => {
-  next();
+  const token = req?.headers?.authorization;
+  // 1. Check if Authorization token exists
+  if (!token) {
+    return res.status(401).json({
+      success: false,
+      message: "Access denied. No token provided.",
+    });
+  }
+
+  try {
+    // 2. Verify and decode token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    // 3. Attach decoded user to request object
+    req.user = decoded;
+    // 4. Move to the next middleware or route
+    next();
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: "Invalid or expired token.",
+    });
+  }
 };
 
 const run = async () => {
