@@ -68,84 +68,103 @@ const run = async () => {
     //*! API ENDPOINT START
     //* Register
     app.post("/register", async (req, res) => {
-      const { email, password, image, name, userName, phone } = req.body;
-      // 1. Check if user exists
-      const user = await userCollection.findOne({ email });
+      try {
+        const { email, password, image, name, userName, phone } = req.body;
+        // 1. Check if user exists
+        const user = await userCollection.findOne({ email });
 
-      if (user) {
-        return res.status(401).json({
+        if (user) {
+          return res.status(401).json({
+            success: false,
+            message: "User Already Exists!",
+            error: {},
+          });
+        }
+        // 1. Password Hashing
+        const hashPassword = bcrypt.hashSync(password, 10);
+
+        const result = await userCollection.insertOne({
+          email,
+          password: hashPassword,
+          image,
+          name,
+          userName,
+          role: "user",
+          phone,
+        });
+
+        res.status(200).json({
+          success: true,
+          message: "User Created Successfully.",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).json({
           success: false,
-          message: "User Already Exists!",
+          message: "Something went wrong!",
+          error,
         });
       }
-      // 1. Password Hashing
-      const hashPassword = bcrypt.hashSync(password, 10);
-
-      const result = await userCollection.insertOne({
-        email,
-        password: hashPassword,
-        image,
-        name,
-        userName,
-        role: "user",
-        phone,
-      });
-
-      res.status(200).json({
-        success: true,
-        message: "User Created Successfully.",
-        data: result,
-      });
     });
 
     //* Login
     app.post("/login", async (req, res) => {
-      const { email, password } = req.body;
-      // 1. Check if user exists
-      const user = await userCollection.findOne({ email });
+      try {
+        const { email, password } = req.body;
+        // 1. Check if user exists
+        const user = await userCollection.findOne({ email });
 
-      if (!user) {
-        return res.status(401).json({
+        if (!user) {
+          return res.status(401).json({
+            success: false,
+            message: "User not found!",
+            error: {},
+          });
+        }
+
+        // 2. Compare password with hashed one
+        const isMatch = bcrypt.compareSync(password, user.password);
+
+        if (!isMatch) {
+          return res.status(401).json({
+            success: false,
+            message: "Invalid password!",
+            error: {},
+          });
+        }
+
+        // 3. Create JWT token
+        const token = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+            role: user.role,
+          },
+          JWT_SECRET,
+          { expiresIn: JWT_EXPIRES }
+        );
+
+        res.status(200).json({
+          success: true,
+          message: "Login successful!",
+          token,
+          data: {
+            id: user._id,
+            email: user.email,
+            name: user.name,
+            image: user.image,
+            userName: user.userName,
+            role: user.role,
+            phone: user.phone,
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
           success: false,
-          message: "User not found!",
+          message: "Something went wrong!",
+          error,
         });
       }
-
-      // 2. Compare password with hashed one
-      const isMatch = bcrypt.compareSync(password, user.password);
-
-      if (!isMatch) {
-        return res.status(401).json({
-          success: false,
-          message: "Invalid password!",
-        });
-      }
-
-      // 3. Create JWT token
-      const token = jwt.sign(
-        {
-          id: user._id,
-          email: user.email,
-          role: user.role,
-        },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES }
-      );
-
-      res.status(200).json({
-        success: true,
-        message: "Login successful!",
-        token,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          image: user.image,
-          userName: user.userName,
-          role: user.role,
-          phone: user.phone,
-        },
-      });
     });
 
     //* Get All Products
