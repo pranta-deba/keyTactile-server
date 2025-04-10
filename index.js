@@ -178,15 +178,14 @@ const run = async () => {
         });
       }
       const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
       try {
-        if (role !== "admin") {
-          return res.status(401).json({
-            success: false,
-            message: "Unauthorized Access!",
-            error: {},
-          });
-        }
-
         const { page = 1, limit = 10, search } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
@@ -282,15 +281,14 @@ const run = async () => {
         });
       }
       const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
       try {
-        if (role !== "admin") {
-          return res.status(401).json({
-            success: false,
-            message: "Unauthorized Access!",
-            error: {},
-          });
-        }
-
         const result = await productCollection.insertOne(req.body);
         res.status(200).json({
           success: true,
@@ -308,6 +306,21 @@ const run = async () => {
 
     //* Update Product
     app.put("/products/:id", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
       const { id } = req.params;
       const {
         title,
@@ -340,7 +353,7 @@ const run = async () => {
         if (price) updatedData.price = price;
         if (rating) updatedData.rating = rating;
         if (description) updatedData.description = description;
-        if (images) updatedData.images = images;
+        if (images.length > 0) updatedData.images = images;
 
         // Update the product
         const result = await productCollection.updateOne(
