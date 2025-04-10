@@ -10,6 +10,15 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const { DB_URL, JWT_SECRET, JWT_EXPIRES } = process.env;
 
+//*! Create a MongoClient
+const client = new MongoClient(DB_URL, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  },
+});
+
 //*! MIDDLEWARES
 app.use(express.json());
 app.use(
@@ -19,14 +28,9 @@ app.use(
   })
 );
 
-//*! Create a MongoClient
-const client = new MongoClient(DB_URL, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
+const auth = (req, res, next) => {
+  next();
+};
 
 const run = async () => {
   try {
@@ -41,8 +45,9 @@ const run = async () => {
     const userCollection = db.collection("users");
 
     //*! API ENDPOINT START
-    app.get("/register", async (req, res) => {
-      const { email, password, image, name, userName } = req.body;
+    //* Register
+    app.post("/register", async (req, res) => {
+      const { email, password, image, name, userName, phone } = req.body;
       // 1. Check if user exists
       const user = await userCollection.findOne({ email });
 
@@ -52,15 +57,17 @@ const run = async () => {
           message: "User Already Exists!",
         });
       }
-
+      // 1. Password Hashing
       const hashPassword = bcrypt.hashSync(password, 10);
 
-      const result = await productCollection.insertOne({
+      const result = await userCollection.insertOne({
         email,
         password: hashPassword,
         image,
         name,
         userName,
+        role: "user",
+        phone,
       });
 
       res.status(200).json({
@@ -70,6 +77,7 @@ const run = async () => {
       });
     });
 
+    //* Login
     app.post("/login", async (req, res) => {
       const { email, password } = req.body;
       // 1. Check if user exists
@@ -97,7 +105,7 @@ const run = async () => {
         {
           id: user._id,
           email: user.email,
-          userName: user.userName,
+          role: user.role,
         },
         JWT_SECRET,
         { expiresIn: JWT_EXPIRES }
@@ -113,10 +121,13 @@ const run = async () => {
           name: user.name,
           image: user.image,
           userName: user.userName,
+          role: user.role,
+          phone: user.phone,
         },
       });
     });
 
+    //* Get All Products
     app.get("/products", async (req, res) => {
       const result = await productCollection.find().toArray();
       res.status(200).json({
@@ -126,6 +137,7 @@ const run = async () => {
       });
     });
 
+    //* Create Product
     app.post("/products", async (req, res) => {
       const result = await productCollection.insertOne(req.body);
       res.status(200).json({
