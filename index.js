@@ -213,6 +213,7 @@ const run = async () => {
         const total = await userCollection.countDocuments(query);
         const users = await userCollection
           .find(query, { projection: { password: 0 } })
+          .sort({ _id: -1 })
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
@@ -257,6 +258,7 @@ const run = async () => {
         const total = await productCollection.countDocuments(query);
         const products = await productCollection
           .find(query)
+          .sort({ _id: -1 })
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
@@ -486,6 +488,59 @@ const run = async () => {
           success: false,
           message: "Something went wrong while placing the order.",
           error: error,
+        });
+      }
+    });
+
+    //* Get All Orders
+    app.get("/orders", auth, async (req, res) => {
+      const { role, email } = req.user;
+      try {
+        const { page = 1, limit = 10, search } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        let query = {};
+        // if search param exists, build a regex query
+        if (search) {
+          query = {
+            $or: [
+              { name: { $regex: search, $options: "i" } },
+              { email: { $regex: search, $options: "i" } },
+              { phone: { $regex: search, $options: "i" } },
+              { address: { $regex: search, $options: "i" } },
+            ],
+          };
+        }
+        // User can only see their own orders
+        if (role === "user") {
+          query.email = email;
+        }
+
+        const total = await orderCollection.countDocuments(query);
+
+        const orders = await orderCollection
+          .find(query)
+          .sort({ _id: -1 })
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+
+        res.status(200).json({
+          success: true,
+          message: "Orders Fetched Successfully.",
+          data: orders,
+          meta: {
+            totalItems: total,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            pageSize: parseInt(limit),
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
         });
       }
     });
