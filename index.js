@@ -94,11 +94,20 @@ const run = async () => {
           phone,
         });
 
-        res.status(200).json({
-          success: true,
-          message: "User Created Successfully.",
-          data: result,
-        });
+        if (result.acknowledged && result.insertedId) {
+          res.status(200).json({
+            success: true,
+            message: "User Created Successfully.",
+            data: {
+              _id: result.insertedId,
+              email,
+              image,
+              name,
+              userName,
+              phone,
+            },
+          });
+        }
       } catch (error) {
         res.status(500).json({
           success: false,
