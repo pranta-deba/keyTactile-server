@@ -353,7 +353,7 @@ const run = async () => {
         if (price) updatedData.price = price;
         if (rating) updatedData.rating = rating;
         if (description) updatedData.description = description;
-        if (images.length > 0) updatedData.images = images;
+        if (images) updatedData.images = images;
 
         // Update the product
         const result = await productCollection.updateOne(
