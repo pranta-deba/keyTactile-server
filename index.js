@@ -138,6 +138,7 @@ const run = async () => {
         const token = jwt.sign(
           {
             id: user._id,
+            name: user.name,
             email: user.email,
             role: user.role,
           },
@@ -389,14 +390,30 @@ const run = async () => {
     });
 
     //* Create Order
-    app.post("/orders", async (req, res) => {
-      const { name, email, phone, address, cartItems, totalAmount } = req.body;
+    app.post("/orders", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role, name, email } = req.user;
+      if (role !== "user") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+
+      const { phone, address, cartItems, totalAmount } = req.body;
 
       try {
-        if (!name || !email || !phone || !address) {
+        if (!phone || !address) {
           return res.status(400).json({
             success: false,
-            message: "All fields (name, email, phone, address) are required.",
+            message: "All fields (phone, address) are required.",
           });
         }
 
@@ -409,22 +426,24 @@ const run = async () => {
 
         // Check stock and update product quantities
         for (const item of cartItems) {
-          const product = await productCollection.findOne({ _id: new ObjectId(item.productId) });
-    
+          const product = await productCollection.findOne({
+            _id: new ObjectId(item.productId),
+          });
+
           if (!product) {
             return res.status(404).json({
               success: false,
               message: `Product not found for ID: ${item.productId}`,
             });
           }
-    
+
           if (product.availableQuantity < item.quantity) {
             return res.status(400).json({
               success: false,
               message: `Not enough quantity for product: ${product.title}`,
             });
           }
-    
+
           // Update product quantity
           await productCollection.updateOne(
             { _id: new ObjectId(item.productId) },
