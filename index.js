@@ -388,6 +388,80 @@ const run = async () => {
       }
     });
 
+    //* Create Order
+    app.post("/orders", async (req, res) => {
+      const { name, email, phone, address, cartItems, totalAmount } = req.body;
+
+      try {
+        if (!name || !email || !phone || !address) {
+          return res.status(400).json({
+            success: false,
+            message: "All fields (name, email, phone, address) are required.",
+          });
+        }
+
+        if (!Array.isArray(cartItems) || cartItems.length === 0) {
+          return res.status(400).json({
+            success: false,
+            message: "Cart is empty. Cannot place order.",
+          });
+        }
+
+        // Check stock and update product quantities
+        for (const item of cartItems) {
+          const product = await productCollection.findOne({ _id: new ObjectId(item.productId) });
+    
+          if (!product) {
+            return res.status(404).json({
+              success: false,
+              message: `Product not found for ID: ${item.productId}`,
+            });
+          }
+    
+          if (product.availableQuantity < item.quantity) {
+            return res.status(400).json({
+              success: false,
+              message: `Not enough quantity for product: ${product.title}`,
+            });
+          }
+    
+          // Update product quantity
+          await productCollection.updateOne(
+            { _id: new ObjectId(item.productId) },
+            { $inc: { availableQuantity: -item.quantity } }
+          );
+        }
+        // Prepare order object
+        const newOrder = {
+          name,
+          email,
+          phone,
+          address,
+          cartItems: cartItems || [],
+          totalAmount: totalAmount || 0,
+          orderDate: new Date(),
+          status: "pending",
+        };
+        // Insert into order collection
+        const result = await orderCollection.insertOne(newOrder);
+
+        res.status(201).json({
+          success: true,
+          message: "Order placed successfully!",
+          data: {
+            _id: result.insertedId,
+            ...newOrder,
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while placing the order.",
+          error: error,
+        });
+      }
+    });
+
     //*! API ENDPOINT END
   } finally {
     // await client.close();
