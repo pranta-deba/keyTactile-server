@@ -545,6 +545,41 @@ const run = async () => {
       }
     });
 
+    //* Delete Order
+    app.delete("/orders/:id", async (req, res) => {
+      const { id } = req.params;
+      if (!ObjectId.isValid(id)) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid order ID.",
+        });
+      }
+
+      try {
+        const result = await orderCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result.deletedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Order not found.",
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Order deleted successfully.",
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while deleting the order.",
+          error,
+        });
+      }
+    });
+
     //*! API ENDPOINT END
   } finally {
     // await client.close();
