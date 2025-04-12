@@ -95,9 +95,22 @@ const run = async () => {
         });
 
         if (result.acknowledged && result.insertedId) {
+          // 3. Create JWT token
+          const token = jwt.sign(
+            {
+              id: result.insertedId,
+              name: name,
+              email: email,
+              role: "user",
+            },
+            JWT_SECRET,
+            { expiresIn: JWT_EXPIRES }
+          );
+
           res.status(200).json({
             success: true,
             message: "User Created Successfully.",
+            token,
             data: {
               _id: result.insertedId,
               email,
