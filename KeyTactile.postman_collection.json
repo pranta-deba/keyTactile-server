@@ -16,7 +16,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"user4@gmail.com\",\r\n    \"password\": \"123456\",\r\n    \"image\": \"https://example.com/profile.jpg\",\r\n    \"name\": \"Raj\",\r\n    \"userName\": \"pritom\",\r\n    \"phone\": \"11111111\"\r\n}",
+							"raw": "{\r\n    \"email\": \"\",\r\n    \"password\": \"\",\r\n    \"image\": \"https://example.com/profile.jpg\",\r\n    \"name\": \"Raj\",\r\n    \"userName\": \"pritom\",\r\n    \"phone\": \"11111111\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -44,7 +44,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"user2@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
+							"raw": "{\r\n    \"email\": \"user2@gmail.com\",\r\n    \"password\": \"\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -128,7 +128,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:5000/products?page=1&limit=5&search=mini",
+							"raw": "http://localhost:5000/products",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -136,20 +136,6 @@
 							"port": "5000",
 							"path": [
 								"products"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "5"
-								},
-								{
-									"key": "search",
-									"value": "mini"
-								}
 							]
 						}
 					},
@@ -289,6 +275,82 @@
 									"key": "limit",
 									"value": "5"
 								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Brands",
+			"item": [
+				{
+					"name": "Create Brands",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"brand\": \"Keychron\",\r\n    \"country\": \"Hong Kong\",\r\n    \"founded\": 2017,\r\n    \"description\": \"Keychron is popular for its sleek, wireless mechanical keyboards designed for Mac, Windows, and Android users. They offer hot-swappable and RGB models.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/brands",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"brands"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Brands",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"brand\": \"Keychron\",\r\n    \"country\": \"Hong Kong\",\r\n    \"founded\": 2017,\r\n    \"description\": \"Keychron is popular for its sleek, wireless mechanical keyboards designed for Mac, Windows, and Android users. They offer hot-swappable and RGB models.\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/brands",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"brands"
 							]
 						}
 					},

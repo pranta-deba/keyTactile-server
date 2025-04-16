@@ -345,7 +345,7 @@ const run = async () => {
     });
 
     //* Get All Brands
-    app.post("/brands", async (req, res) => {
+    app.get("/brands", async (req, res) => {
       try {
         const result = await brandCollection.find({}).toArray();
         res.status(200).json({
