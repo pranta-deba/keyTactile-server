@@ -255,7 +255,7 @@ const run = async () => {
     //* Get All Products
     app.get("/products", async (req, res) => {
       try {
-        const { page = 1, limit = 10, search } = req.query;
+        const { page = 1, limit = 10, search, sort } = req.query;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         let query = {};
@@ -269,10 +269,19 @@ const run = async () => {
             ],
           };
         }
+        // Default sort by _id (latest first)
+        let sortOption = { _id: -1 };
+        // Sort by price
+        if (sort === "price-asc") {
+          sortOption = { price: 1 };
+        } else if (sort === "price-desc") {
+          sortOption = { price: -1 };
+        }
+
         const total = await productCollection.countDocuments(query);
         const products = await productCollection
           .find(query)
-          .sort({ _id: -1 })
+          .sort(sortOption)
           .skip(skip)
           .limit(parseInt(limit))
           .toArray();
