@@ -65,6 +65,7 @@ const run = async () => {
     const productCollection = db.collection("products");
     const userCollection = db.collection("users");
     const orderCollection = db.collection("orders");
+    const brandCollection = db.collection("brands");
 
     //*! API ENDPOINT START
     //* Register
@@ -296,6 +297,61 @@ const run = async () => {
             totalPages: Math.ceil(total / parseInt(limit)),
             pageSize: parseInt(limit),
           },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
+    });
+
+    //* Create Brands
+    app.post("/brands", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+      try {
+        const result = await brandCollection.insertOne(req.body);
+
+        if (result?.acknowledged && result?.insertedId) {
+          const newData = { _id: result.insertedId, ...req.body };
+          res.status(200).json({
+            success: true,
+            message: "Brands Created Successfully.",
+            data: newData,
+          });
+        }
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
+    });
+
+    //* Get All Brands
+    app.post("/brands", async (req, res) => {
+      try {
+        const result = await brandCollection.find({}).toArray();
+        res.status(200).json({
+          success: true,
+          message: "Get All Brands Successfully.",
+          data: result,
         });
       } catch (error) {
         res.status(500).json({
