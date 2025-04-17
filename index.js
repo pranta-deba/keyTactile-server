@@ -293,7 +293,10 @@ const run = async () => {
     //* Get All Brands
     app.get("/brands", async (req, res) => {
       try {
-        const result = await brandCollection.find({}).toArray();
+        const result = await brandCollection
+          .find({})
+          .sort({ brand: 1 })
+          .toArray();
         res.status(200).json({
           success: true,
           message: "Get All Brands Successfully.",
@@ -434,7 +437,7 @@ const run = async () => {
           error: {},
         });
       }
-      
+
       const { id } = req.params;
       const {
         title,
