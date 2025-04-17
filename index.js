@@ -253,60 +253,6 @@ const run = async () => {
       }
     });
 
-    //* Get All Products
-    app.get("/products", async (req, res) => {
-      try {
-        const { page = 1, limit = 10, search, sort } = req.query;
-        const skip = (parseInt(page) - 1) * parseInt(limit);
-
-        let query = {};
-        // if search param exists, build a regex query
-        if (search) {
-          query = {
-            $or: [
-              { title: { $regex: search, $options: "i" } },
-              { brand: { $regex: search, $options: "i" } },
-              { description: { $regex: search, $options: "i" } },
-            ],
-          };
-        }
-        // Default sort by _id (latest first)
-        let sortOption = { _id: -1 };
-        // Sort by price
-        if (sort === "price-asc") {
-          sortOption = { price: 1 };
-        } else if (sort === "price-desc") {
-          sortOption = { price: -1 };
-        }
-
-        const total = await productCollection.countDocuments(query);
-        const products = await productCollection
-          .find(query)
-          .sort(sortOption)
-          .skip(skip)
-          .limit(parseInt(limit))
-          .toArray();
-
-        res.status(200).json({
-          success: true,
-          message: "Products Fetched Successfully.",
-          data: products,
-          meta: {
-            totalItems: total,
-            currentPage: parseInt(page),
-            totalPages: Math.ceil(total / parseInt(limit)),
-            pageSize: parseInt(limit),
-          },
-        });
-      } catch (error) {
-        res.status(500).json({
-          success: false,
-          message: "Something went wrong!",
-          error,
-        });
-      }
-    });
-
     //* Create Brands
     app.post("/brands", auth, async (req, res) => {
       if (!req.user) {
@@ -391,6 +337,83 @@ const run = async () => {
           success: false,
           message: "Something went wrong!",
           error,
+        });
+      }
+    });
+
+    //* Get All Products
+    app.get("/products", async (req, res) => {
+      try {
+        const { page = 1, limit = 10, search, sort } = req.query;
+        const skip = (parseInt(page) - 1) * parseInt(limit);
+
+        let query = {};
+        // if search param exists, build a regex query
+        if (search) {
+          query = {
+            $or: [
+              { title: { $regex: search, $options: "i" } },
+              { brand: { $regex: search, $options: "i" } },
+              { description: { $regex: search, $options: "i" } },
+            ],
+          };
+        }
+        // Default sort by _id (latest first)
+        let sortOption = { _id: -1 };
+        // Sort by price
+        if (sort === "price-asc") {
+          sortOption = { price: 1 };
+        } else if (sort === "price-desc") {
+          sortOption = { price: -1 };
+        }
+
+        const total = await productCollection.countDocuments(query);
+        const products = await productCollection
+          .find(query)
+          .sort(sortOption)
+          .skip(skip)
+          .limit(parseInt(limit))
+          .toArray();
+
+        res.status(200).json({
+          success: true,
+          message: "Products Fetched Successfully.",
+          data: products,
+          meta: {
+            totalItems: total,
+            currentPage: parseInt(page),
+            totalPages: Math.ceil(total / parseInt(limit)),
+            pageSize: parseInt(limit),
+          },
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
+    });
+
+    //* Get Single Product
+    app.get("/products/:id", async (req, res) => {
+      const { id } = req.params;
+
+      try {
+        const product = await productCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        res.status(200).json({
+          success: true,
+          message: "Product Fetched successfully.",
+          data: product,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while fetching product.",
+          error: error,
         });
       }
     });
