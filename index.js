@@ -501,6 +501,37 @@ const run = async () => {
       }
     });
 
+    //* Delete Product
+    app.delete("/products/:id", async (req, res) => {
+      const { id } = req.params;
+
+      try {
+        const result = await productCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result?.acknowledged && result?.deletedCount === 1) {
+          res.status(200).json({
+            success: true,
+            message: "Product Deleted successfully.",
+            data: result,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: "Product Not Found.",
+            error: {},
+          });
+        }
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while delete product.",
+          error: error,
+        });
+      }
+    });
+
     //* Create Order
     app.post("/orders", auth, async (req, res) => {
       if (!req.user) {
