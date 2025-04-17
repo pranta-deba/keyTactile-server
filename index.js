@@ -434,6 +434,7 @@ const run = async () => {
           error: {},
         });
       }
+      
       const { id } = req.params;
       const {
         title,
