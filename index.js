@@ -398,7 +398,6 @@ const run = async () => {
     //* Get Single Product
     app.get("/products/:id", async (req, res) => {
       const { id } = req.params;
-
       try {
         const product = await productCollection.findOne({
           _id: new ObjectId(id),
