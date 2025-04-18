@@ -293,14 +293,37 @@ const run = async () => {
     //* Get All Brands
     app.get("/brands", async (req, res) => {
       try {
-        const result = await brandCollection
-          .find({})
-          .sort({ brand: 1 })
-          .toArray();
+        const { page = 1, limit, search } = req.query;
+
+        let query = {};
+        if (search) {
+          query = {
+            $or: [{ brand: { $regex: search, $options: "i" } }],
+          };
+        }
+
+        const total = await brandCollection.countDocuments(query);
+
+        let resultQuery = brandCollection.find(query).sort({ _id: -1 });
+        
+        if (limit) {
+          const parsedLimit = parseInt(limit);
+          const skip = (parseInt(page) - 1) * parsedLimit;
+          resultQuery = resultQuery.skip(skip).limit(parsedLimit);
+        }
+
+        const result = await resultQuery.toArray();
+
         res.status(200).json({
           success: true,
           message: "Get All Brands Successfully.",
           data: result,
+          meta: {
+            totalItems: total,
+            currentPage: limit ? parseInt(page) : 1,
+            totalPages: limit ? Math.ceil(total / parseInt(limit)) : 1,
+            pageSize: limit ? parseInt(limit) : total,
+          },
         });
       } catch (error) {
         res.status(500).json({
