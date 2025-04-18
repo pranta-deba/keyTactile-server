@@ -305,7 +305,7 @@ const run = async () => {
         const total = await brandCollection.countDocuments(query);
 
         let resultQuery = brandCollection.find(query).sort({ _id: -1 });
-        
+
         if (limit) {
           const parsedLimit = parseInt(limit);
           const skip = (parseInt(page) - 1) * parsedLimit;
@@ -330,6 +330,130 @@ const run = async () => {
           success: false,
           message: "Something went wrong!",
           error,
+        });
+      }
+    });
+
+    //* Get Single Brand
+    app.get("/brands/:id", async (req, res) => {
+      const { id } = req.params;
+      try {
+        const product = await brandCollection.findOne({
+          _id: new ObjectId(id),
+        });
+
+        res.status(200).json({
+          success: true,
+          message: "Brand Fetched successfully.",
+          data: product,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while fetching brand.",
+          error: error,
+        });
+      }
+    });
+
+    // * Update Brand
+    app.patch("/brands/:id", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+
+      const { id } = req.params;
+      const { brand, country, founded, description, image } = req.body;
+
+      const updateFields = {};
+      if (brand) updateFields.brand = brand;
+      if (country) updateFields.country = country;
+      if (founded) updateFields.founded = founded;
+      if (description) updateFields.description = description;
+      if (image) updateFields.image = image;
+
+      try {
+        const result = await brandCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: updateFields }
+        );
+
+        if (result.matchedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Brand not found.",
+            error: {},
+          });
+        }
+
+        res.status(200).json({
+          success: true,
+          message: "Brand updated successfully.",
+          data: result,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while updating the brand.",
+          error: error,
+        });
+      }
+    });
+
+    //* Delete Brand
+    app.delete("/brands/:id", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+      const { id } = req.params;
+      try {
+        const result = await brandCollection.deleteOne({
+          _id: new ObjectId(id),
+        });
+
+        if (result?.acknowledged && result?.deletedCount === 1) {
+          res.status(200).json({
+            success: true,
+            message: "Brand Deleted successfully.",
+            data: result,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: "Brand Not Found.",
+            error: {},
+          });
+        }
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while delete brand.",
+          error: error,
         });
       }
     });
