@@ -652,6 +652,55 @@ const run = async () => {
       }
     });
 
+    //* Update Product Quantity
+    app.patch("/products/:id/quantity", async (req, res) => {
+      const { id } = req.params;
+      const { action } = req.body;
+
+      try {
+        const objectId = new ObjectId(id);
+        const product = await productCollection.findOne({ _id: objectId });
+
+        if (!product) {
+          return res.status(404).json({
+            success: false,
+            message: "Product not found.",
+          });
+        }
+
+        let update = {};
+
+        if (action === "decrease" && product.availableQuantity > 0) {
+          update = { $inc: { availableQuantity: -1 } };
+        } else if (action === "increase") {
+          update = { $inc: { availableQuantity: 1 } };
+        } else {
+          return res.status(400).json({
+            success: false,
+            message: "Invalid action or quantity.",
+          });
+        }
+
+        const result = await productCollection.findOneAndUpdate(
+          { _id: objectId },
+          update,
+          { returnDocument: "after" }
+        );
+
+        res.status(200).json({
+          success: true,
+          message: "Product quantity updated successfully.",
+          data: result.value,
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong while updating the product quantity.",
+          error: error.message,
+        });
+      }
+    });
+
     //* Delete Product
     app.delete("/products/:id", async (req, res) => {
       const { id } = req.params;
