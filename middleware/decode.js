@@ -20,3 +20,5 @@ if (decodedToken) {
   console.log('Invalid token');
 }
 
+const decoded = jwt.verify(token, 'your_secret_key');
+
