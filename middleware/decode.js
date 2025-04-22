@@ -10,3 +10,13 @@ function decodeJWT(token) {
     return null;
   }
 }
+
+const token = 'your_jwt_token_here';
+const decodedToken = decodeJWT(token);
+
+if (decodedToken) {
+  console.log('Decoded Payload:', decodedToken.payload);
+} else {
+  console.log('Invalid token');
+}
+
