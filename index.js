@@ -68,6 +68,7 @@ const run = async () => {
     const brandCollection = db.collection("brands");
 
     //*! API ENDPOINT START
+
     //* Register
     app.post("/register", async (req, res) => {
       try {
@@ -929,6 +930,58 @@ const run = async () => {
           success: false,
           message: "Something went wrong while deleting the order.",
           error,
+        });
+      }
+    });
+
+    //*  Admin Get Stats
+    app.get("/stat", async (req, res) => {
+      try {
+        const orderStats = await orderCollection
+          .aggregate([
+            {
+              $group: {
+                _id: "$status",
+                count: { $sum: 1 },
+                totalAmount: { $sum: "$totalAmount" },
+              },
+            },
+          ])
+          .toArray();
+
+        let totalOrders = 0;
+        let newOrders = 0;
+        let totalEarnings = 0;
+
+        orderStats.forEach((stat) => {
+          totalOrders += stat.count;
+          if (stat._id === "pending") {
+            newOrders = stat.count;
+          }
+          totalEarnings += stat.totalAmount;
+        });
+
+        // Aggregating product and user counts
+        const [productCountResult, userCountResult] = await Promise.all([
+          productCollection.estimatedDocumentCount(),
+          userCollection.estimatedDocumentCount(),
+        ]);
+
+        res.send({
+          success: true,
+          data: {
+            totalProducts: productCountResult,
+            totalUsers: userCountResult,
+            totalOrders,
+            newOrders,
+            totalEarnings: parseFloat(totalEarnings.toFixed(2)),
+          },
+        });
+      } catch (error) {
+        res.status(500).send({
+          success: false,
+          message: "Something went wrong",
+          error: err,
         });
       }
     });
