@@ -840,6 +840,13 @@ const run = async () => {
 
     //* Get All Orders
     app.get("/orders", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
       const { role, email } = req.user;
       try {
         const { page = 1, limit = 10, search } = req.query;
