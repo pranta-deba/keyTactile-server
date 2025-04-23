@@ -656,6 +656,7 @@ const run = async () => {
     app.patch("/products/:id/quantity", async (req, res) => {
       const { id } = req.params;
       const { action } = req.body;
+      const { quantity } = req.query;
 
       try {
         const objectId = new ObjectId(id);
@@ -670,10 +671,23 @@ const run = async () => {
 
         let update = {};
 
-        if (action === "decrease" && product.availableQuantity > 0) {
+        if (
+          !quantity &&
+          action === "decrease" &&
+          product.availableQuantity > 0
+        ) {
           update = { $inc: { availableQuantity: -1 } };
-        } else if (action === "increase") {
+        } else if (!quantity && action === "increase") {
           update = { $inc: { availableQuantity: 1 } };
+        } else if (quantity && action === "increase-by-value") {
+          const increaseValue = parseInt(quantity);
+          if (isNaN(increaseValue) || increaseValue <= 0) {
+            return res.status(400).json({
+              success: false,
+              message: "Quantity must be a positive integer.",
+            });
+          }
+          update = { $inc: { availableQuantity: increaseValue } };
         } else {
           return res.status(400).json({
             success: false,
