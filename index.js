@@ -935,7 +935,23 @@ const run = async () => {
     });
 
     //*  Admin Get Stats
-    app.get("/stat", async (req, res) => {
+    app.get("/stat", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+
       try {
         const orderStats = await orderCollection
           .aggregate([
