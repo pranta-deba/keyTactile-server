@@ -899,6 +899,59 @@ const run = async () => {
       }
     });
 
+    //* Update Status By Admin
+    app.patch("/orders/:id/status", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
+      const orderId = req.params.id;
+      const { newStatus } = req.body;
+
+      if (!newStatus) {
+        return res.status(400).json({
+          success: false,
+          message: "New status is required.",
+        });
+      }
+
+      try {
+        const result = await orderCollection.updateOne(
+          { _id: new ObjectId(orderId) },
+          { $set: { status: newStatus } }
+        );
+
+        if (result.modifiedCount === 0) {
+          return res.status(404).json({
+            success: false,
+            message: "Order not found or status already updated.",
+          });
+        }
+
+        res.json({
+          success: true,
+          message: "Order status updated successfully.",
+        });
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "An error occurred while updating the order status.",
+          error: error,
+        });
+      }
+    });
+
     //* Delete Order
     app.delete("/orders/:id", async (req, res) => {
       const { id } = req.params;
