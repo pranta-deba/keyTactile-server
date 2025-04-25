@@ -717,7 +717,22 @@ const run = async () => {
     });
 
     //* Delete Product
-    app.delete("/products/:id", async (req, res) => {
+    app.delete("/products/:id", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      const { role } = req.user;
+      if (role !== "admin") {
+        return res.status(401).json({
+          success: false,
+          message: "Unauthorized Access!",
+          error: {},
+        });
+      }
       const { id } = req.params;
 
       try {
