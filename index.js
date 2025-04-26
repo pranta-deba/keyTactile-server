@@ -21,15 +21,16 @@ const client = new MongoClient(DB_URL, {
 
 //*! MIDDLEWARES
 app.use(express.json());
-app.use(
-  cors({
-    origin: ["http://localhost:5173/"],
-    credentials: true,
-  })
-);
+const corsOptions = {
+  origin: "http://localhost:5173",
+  credentials: true,
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(cors(corsOptions));
 
 const auth = (req, res, next) => {
-  const token = req?.headers?.authorization;
+  const token = req?.headers?.authorization?.split(" ")[1];
   // 1. Check if Authorization token exists
   if (!token) {
     return res.status(401).json({
@@ -48,7 +49,7 @@ const auth = (req, res, next) => {
   } catch (error) {
     return res.status(401).json({
       success: false,
-      message: "Invalid or expired token.",
+      message: "Invalid or expired token." + error.message,
     });
   }
 };
