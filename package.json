@@ -2,6 +2,7 @@
   "name": "keytactile-server",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
@@ -15,12 +16,7 @@
     "keyboards",
     "keytactile"
   ],
-  "author": "Pranta Deba Nath <prantoo.deb.nath@gmail.com>",
   "license": "ISC",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/pranta-deba/keyTactile-server"
-  },
   "description": "Backend API for KeyTactile - A keyboard management e-commerce platform.",
   "dependencies": {
     "bcryptjs": "^3.0.2",
