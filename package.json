@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "start": "node index.js"
   },
   "keywords": [
     "backend",
@@ -16,7 +17,7 @@
     "keytactile"
   ],
   "author": "Pranta Deba Nath <prantoo.deb.nath@gmail.com>",
-  "license": "MIT",
+  "license": "ISC",
   "repository": {
     "type": "git",
     "url": "https://github.com/pranta-deba/keyTactile-server"
