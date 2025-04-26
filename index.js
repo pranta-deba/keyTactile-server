@@ -7,7 +7,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 const { DB_URL, JWT_SECRET, JWT_EXPIRES } = process.env;
 
 //*! Create a MongoClient
@@ -20,7 +20,6 @@ const client = new MongoClient(DB_URL, {
 });
 
 //*! MIDDLEWARES
-app.use(express.json());
 const corsOptions = {
   origin: "http://localhost:5173",
   credentials: true,
@@ -28,39 +27,11 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 app.use(cors(corsOptions));
+app.use(express.json());
 
-const auth = (req, res, next) => {
-  const token = req?.headers?.authorization?.split(" ")[1];
-  // 1. Check if Authorization token exists
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: "Access denied. No token provided.",
-    });
-  }
-
+async function run() {
   try {
-    // 2. Verify and decode token
-    const decoded = jwt.verify(token, JWT_SECRET);
-    // 3. Attach decoded user to request object
-    req.user = decoded;
-    // 4. Move to the next middleware or route
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: "Invalid or expired token." + error.message,
-    });
-  }
-};
-
-const run = async () => {
-  try {
-    await client.connect();
-    // await client.db("admin").command({ ping: 1 });
-    console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
-    );
+    // await client.connect();
 
     const db = client.db("key-tactile");
     const productCollection = db.collection("products");
@@ -70,10 +41,31 @@ const run = async () => {
 
     //*! API ENDPOINT START
 
-    //*! ROOT Route
-    app.get("/", (req, res) => {
-      res.status(200).send("Running.........");
-    });
+    //* Auth Guard
+    const auth = (req, res, next) => {
+      const token = req?.headers?.authorization?.split(" ")[1];
+      // 1. Check if Authorization token exists
+      if (!token) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+        });
+      }
+
+      try {
+        // 2. Verify and decode token
+        const decoded = jwt.verify(token, JWT_SECRET);
+        // 3. Attach decoded user to request object
+        req.user = decoded;
+        // 4. Move to the next middleware or route
+        next();
+      } catch (error) {
+        return res.status(401).json({
+          success: false,
+          message: "Invalid or expired token." + error.message,
+        });
+      }
+    };
 
     //* Register
     app.post("/register", async (req, res) => {
@@ -1128,13 +1120,24 @@ const run = async () => {
     });
 
     //*! API ENDPOINT END
+
+    // await client.db("admin").command({ ping: 1 });
+    console.log(
+      "Pinged your deployment. You successfully connected to MongoDB!"
+    );
   } finally {
     // await client.close();
   }
-};
+}
+
+run().catch(console.dir);
+
+//*! ROOT Route
+app.get("/", (req, res) => {
+  res.status(200).send("Running.........");
+});
 
 //*! APP Listen
-app.listen(PORT, () => {
-  run().catch((error) => console.log(error));
-  console.log(`🚀 Server listening on port ${PORT}`);
+app.listen(port, () => {
+  console.log(`🚀 Server listening on port ${port}`);
 });
