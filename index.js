@@ -21,7 +21,11 @@ const client = new MongoClient(DB_URL, {
 
 //*! MIDDLEWARES
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: [
+    "http://localhost:5173",
+    "https://key-tactile-client.vercel.app",
+    "https://key-tactile-client-git-main-prantas-projects-fd3fe1e6.vercel.app",
+  ],
   credentials: true,
   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
   allowedHeaders: ["Content-Type", "Authorization"],
