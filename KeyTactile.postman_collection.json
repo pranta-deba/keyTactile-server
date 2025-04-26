@@ -38,13 +38,48 @@
 					"response": []
 				},
 				{
+					"name": "Update User",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"name\": \"Raj deb\",\r\n    \"userName\": \"pritom\",\r\n    \"phone\": \"11111111\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/update-profile/lena@mailinator.com",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"update-profile",
+								"lena@mailinator.com"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Login",
 					"request": {
 						"method": "POST",
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"email\": \"user2@gmail.com\",\r\n    \"password\": \"\"\r\n}",
+							"raw": "{\r\n    \"email\": \"user2@gmail.com\",\r\n    \"password\": \"123456\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -175,6 +210,149 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Update Product Quantity",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"action\": \"decrease\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/products/68026efe44d96f6a18a1b2f5/quantity",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"products",
+								"68026efe44d96f6a18a1b2f5",
+								"quantity"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Increase Quantity By Value",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"action\": \"increase-by-value\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/products/68026efe44d96f6a18a1b2f5/quantity?quantity=2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"products",
+								"68026efe44d96f6a18a1b2f5",
+								"quantity"
+							],
+							"query": [
+								{
+									"key": "quantity",
+									"value": "2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Product",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/products/67f6b71ebc165c746434377b",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"products",
+								"67f6b71ebc165c746434377b"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text",
+								"disabled": true
+							}
+						],
+						"url": {
+							"raw": "http://localhost:5000/products/67f6b71ebc165c7464343781",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"products",
+								"67f6b71ebc165c7464343781"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -257,7 +435,7 @@
 							}
 						],
 						"url": {
-							"raw": "http://localhost:5000/orders?page=1&limit=5",
+							"raw": "http://localhost:5000/orders",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -265,16 +443,42 @@
 							"port": "5000",
 							"path": [
 								"orders"
-							],
-							"query": [
-								{
-									"key": "page",
-									"value": "1"
-								},
-								{
-									"key": "limit",
-									"value": "5"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Status By Admin",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"newStatus\": \"processing\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
 								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/orders/68091fe77a208bdaf3c9d599/status",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"orders",
+								"68091fe77a208bdaf3c9d599",
+								"status"
 							]
 						}
 					},
@@ -298,7 +502,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n    \"brand\": \"Keychron\",\r\n    \"country\": \"Hong Kong\",\r\n    \"founded\": 2017,\r\n    \"description\": \"Keychron is popular for its sleek, wireless mechanical keyboards designed for Mac, Windows, and Android users. They offer hot-swappable and RGB models.\"\r\n}",
+							"raw": "{\r\n    \"brand\": \"Keychron\",\r\n    \"country\": \"Hong Kong\",\r\n    \"founded\": 2017,\r\n    \"description\": \"Keychron is popular for its sleek, wireless mechanical keyboards designed for Mac, Windows, and Android users. They offer hot-swappable and RGB models.\",\r\n    \"image\": \"\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -314,6 +518,105 @@
 							"port": "5000",
 							"path": [
 								"brands"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Brand",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"brand\": \"Keychron\",\r\n    \"country\": \"Hong Kong\",\r\n    \"founded\": 2017,\r\n    \"description\": \"Keychron is popular for its sleek, wireless mechanical keyboards designed for Mac, Windows, and Android users. They offer hot-swappable and RGB models.\",\r\n    \"image\" : \"\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/brands/67f6b71ebc165c7464343781",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"brands",
+								"67f6b71ebc165c7464343781"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Single Brand",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/brands/68023d784f41a62263cd5456",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"brands",
+								"68023d784f41a62263cd5456"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Brand",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:5000/brands/67f6b71ebc165c7464343781",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"brands",
+								"67f6b71ebc165c7464343781"
 							]
 						}
 					},
@@ -351,6 +654,43 @@
 							"port": "5000",
 							"path": [
 								"brands"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": "keych",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Admin",
+			"item": [
+				{
+					"name": "All Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "{{adminToken}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:5000/stat",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"stat"
 							]
 						}
 					},
