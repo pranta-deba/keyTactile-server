@@ -1070,6 +1070,57 @@ const run = async () => {
       }
     });
 
+    //* Update Profile
+    app.patch("/update-profile/:email", auth, async (req, res) => {
+      if (!req.user) {
+        return res.status(401).json({
+          success: false,
+          message: "Access denied. No token provided.",
+          error: {},
+        });
+      }
+      try {
+        const { email } = req.params;
+        const { name, userName, phone, image } = req.body;
+
+        const updatedData = {
+          ...(name && { name }),
+          ...(userName && { userName }),
+          ...(phone && { phone }),
+          ...(image && { image }),
+        };
+
+        const result = await userCollection.updateOne(
+          { email },
+          { $set: updatedData }
+        );
+
+        if (result.modifiedCount > 0) {
+          const updatedUser = await userCollection.findOne(
+            { email },
+            { projection: { password: 0 } }
+          );
+
+          res.status(200).json({
+            success: true,
+            message: "Profile updated successfully",
+            data: updatedUser,
+          });
+        } else {
+          res.status(404).json({
+            success: false,
+            message: "User not found or no changes made",
+          });
+        }
+      } catch (error) {
+        res.status(500).json({
+          success: false,
+          message: "Something went wrong!",
+          error,
+        });
+      }
+    });
+
     //*! API ENDPOINT END
   } finally {
     // await client.close();
