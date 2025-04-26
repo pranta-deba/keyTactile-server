@@ -1127,8 +1127,6 @@ const run = async () => {
   }
 };
 
-
-
 //*! ROOT Route
 app.get("/", (req, res) => {
   res.status(200).send("Running.........");
@@ -1136,6 +1134,6 @@ app.get("/", (req, res) => {
 
 //*! APP Listen
 app.listen(PORT, () => {
-run().catch((error) => console.log(error));
+  run().catch((error) => console.log(error));
   console.log(`🚀 Server listening on port ${PORT}`);
 });
